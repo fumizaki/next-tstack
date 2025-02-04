@@ -1,7 +1,7 @@
 .PHONY: init docker-up docker-down docker-free
 
-# デフォルトの環境を dev に設定
-ENV ?= dev
+# デフォルトの環境を local に設定
+ENV ?= local
 
 # rootの.envファイル作成
 create_root_env:
@@ -15,10 +15,10 @@ create_root_env:
 # webviewの.envファイル作成
 create_webview_env:
 	@if [ ! -f ./app/webview/.env.example ]; then \
-		echo "NODE_ENV=DEV" > ./app/webview/.env.example; \
+		echo "NODE_ENV=local" > ./app/webview/.env.example; \
 	fi
-	@if [ ! -f ./app/webview/.env.dev ]; then \
-		cp -f ./app/webview/.env.example ./app/webview/.env.dev; \
+	@if [ ! -f ./app/webview/.env.local ]; then \
+		cp -f ./app/webview/.env.example ./app/webview/.env.local; \
 	fi
 	@if [ ! -f ./app/webview/.env.test ]; then \
 		cp -f ./app/webview/.env.example ./app/webview/.env.test; \
