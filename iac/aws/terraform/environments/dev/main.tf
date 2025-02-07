@@ -11,12 +11,30 @@ provider "aws" {
   region = var.aws_region
 }
 
-module "networking" {
-  source = "../../modules/networking"
+module "vpc" {
+  source = "../../modules/vpc"
 
   project_name         = var.project_name
   environment          = var.environment
   vpc_cidr             = var.vpc_cidr
+}
+
+module "igw" {
+  source = "../../modules/igw"
+
+  project_name         = var.project_name
+  environment          = var.environment
+  vpc_id             = module.vpc.vpc_id
+}
+
+module "subnet" {
+  source = "../../modules/subnet"
+
+  project_name         = var.project_name
+  environment          = var.environment
+  aws_region           = var.aws_region
+  vpc_id               = module.vpc.vpc_id
+  igw_id               = module.igw.igw_id
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
 }
@@ -26,8 +44,8 @@ module "alb" {
 
   project_name        = var.project_name
   environment         = var.environment
-  vpc_id              = module.networking.vpc_id
-  public_subnet_ids   = module.networking.public_subnet_ids
+  vpc_id              = module.vpc.vpc_id
+  public_subnet_ids   = module.subnet.public_subnet_ids
   container_port      = 3000
   health_check_path   = "/"
 }
@@ -76,8 +94,8 @@ module "ecs_service" {
   ecs_cluster_id          = module.ecs_cluster.cluster_id
   ecs_cluster_name        = module.ecs_cluster.cluster_name
   task_definition_arn     = module.task_definition.task_definition_arn
-  vpc_id                  = module.networking.vpc_id
-  private_subnet_ids      = module.networking.private_subnet_ids
+  vpc_id                  = module.vpc.vpc_id
+  private_subnet_ids      = module.subnet.private_subnet_ids
   target_group_arn        = module.alb.target_group_arn
   alb_security_group_id   = module.alb.alb_security_group_id
   container_port          = 3000

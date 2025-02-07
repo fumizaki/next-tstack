@@ -34,6 +34,12 @@ variable "private_subnet_cidrs" {
   default     = ["10.0.10.0/24", "10.0.20.0/24"]
 }
 
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
+  default     = ["ap-northeast-1a", "ap-northeast-1c"]
+}
+
 variable "ecs_task_cpu" {
   description = "CPU units for ECS task"
   type        = number

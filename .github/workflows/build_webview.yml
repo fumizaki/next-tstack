@@ -1,0 +1,26 @@
+# Next.jsアプリのDockerイメージをビルドしECRにプッシュするGitHub Actions Workflow
+name: Build and Push Webview Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Login to AWS ECR
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+          aws-region: us-east-1
+      
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t webview .
+          docker tag webview:latest 123456789012.dkr.ecr.us-east-1.amazonaws.com/webview:latest
+          docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/webview:latest

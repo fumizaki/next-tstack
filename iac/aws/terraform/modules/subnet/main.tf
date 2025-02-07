@@ -1,44 +1,3 @@
-# VPCを作成
-# * VPC: AWSの仮想プライベートクラウド
-resource "aws_vpc" "main" {
-  # VPCのCIDRブロックを指定
-  # * CIDRブロックはVPC内の有効なIPアドレス範囲を表す
-  cidr_block           = var.vpc_cidr
-  # DNSホスト名を有効化
-  # * true: インスタンスにパブリックDNSホスト名を割り当てる
-  # ** インスタンスにパブリックDNSホスト名を割り当てる場合、インスタンスはAmazonProvidedDNSサーバーを使用してDNS解決を行う
-  # *** AmazonProvidedDNSサーバーはAmazonが提供するDNSサーバー
-  # * false: インスタンスにパブリックDNSホスト名を割り当てない
-  enable_dns_hostnames = true
-  # DNSサポートを有効化
-  # * true: インスタンスにDNSサポートを有効化
-  # ** DNSサポートを有効化にする場合、インスタンスはAmazonProvidedDNSサーバーを使用してDNS解決を行う
-  # *** AmazonProvidedDNSサーバーはAmazonが提供するDNSサーバー
-  # * false: インスタンスにDNSサポートを有効化しない
-  enable_dns_support   = true
-
-  # タグを指定
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-vpc"
-    Environment = var.environment
-  }
-}
-
-# インターネットゲートウェイを作成
-# * インターネットゲートウェイ: VPC内のリソースがインターネットに接続できるようにするためのゲートウェイ
-resource "aws_internet_gateway" "main" {
-  # VPCを指定
-  # * インターネットゲートウェイをアタッチするVPCを指定
-  # ** インターネットゲートウェイによってVPC内のリソースがインターネットに接続できるようになる
-  vpc_id = aws_vpc.main.id
-
-  # タグを指定
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-igw"
-    Environment = var.environment
-  }
-}
-
 # パブリックサブネットを作成
 # * パブリックサブネット: インターネットゲートウェイに接続されたサブネット
 resource "aws_subnet" "public" {
@@ -47,14 +6,14 @@ resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)
   # VPCを指定
   # * サブネットが配置されるVPCを指定
-  vpc_id                  = aws_vpc.main.id
+  vpc_id                  = var.vpc_id
   # パブリックサブネットのCIDRブロックを指定
   # * CIDRブロックはサブネット内のIPアドレス範囲を表す
   cidr_block              = var.public_subnet_cidrs[count.index]
   # アベイラビリティゾーンを指定
   # * サブネットが配置されるアベイラビリティゾーンを指定
   # ** アベイラビリティゾーンはAWSのデータセンターが配置されている地域
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  availability_zone       = var.availability_zones[count.index]
   # パブリックIPアドレスを自動割り当て
   # * true: インスタンスにパブリックIPアドレスを自動割り当て
   # ** インスタンスにパブリックIPアドレスを自動割り当てる場合、インスタンスはインターネットに接続できる
@@ -76,14 +35,14 @@ resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
   # VPCを指定
   # * サブネットが配置されるVPCを指定
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = var.vpc_id
   # プライベートサブネットのCIDRブロックを指定
   # * CIDRブロックはサブネット内のIPアドレス範囲を表す
   cidr_block        = var.private_subnet_cidrs[count.index]
   # アベイラビリティゾーンを指定
   # * サブネットが配置されるアベイラビリティゾーンを指定
   # ** アベイラビリティゾーンはAWSのデータセンターが配置されている地域
-  availability_zone = data.aws_availability_zones.available.names[count.index]
+  availability_zone = var.availability_zones[count.index]
 
   # タグを指定
   tags = {
@@ -95,20 +54,39 @@ resource "aws_subnet" "private" {
 # ルートテーブルを作成
 # * ルートテーブル: サブネット内のトラフィックをルーティングするためのルールを保持するテーブル
 resource "aws_route_table" "public" {
+  # カウントを指定
+  # * ルートテーブルを複数作成する場合、カウントを指定して複数のルートテーブルを作成
+  count  = length(var.public_subnet_cidrs)
   # VPCを指定
   # * ルートテーブルが関連付けられるVPCを指定
-  vpc_id = aws_vpc.main.id
+  vpc_id = var.vpc_id
 
   # ルートを追加
   # * CIDRブロックに対してインターネットゲートウェイにルーティングするルートを追加
   route {
     cidr_block = "0.0.0.0/0" # すべてのIPアドレス
-    gateway_id = aws_internet_gateway.main.id # インターネットゲートウェイ
+    gateway_id = var.igw_id # インターネットゲートウェイ
   }
 
   # タグを指定
   tags = {
-    Name        = "${var.project_name}-${var.environment}-public-rt"
+    Name        = "${var.project_name}-${var.environment}-public-${count.index + 1}"
+    Environment = var.environment
+  }
+}
+
+# ルートテーブルを作成
+# * ルートテーブル: サブネット内のトラフィックをルーティングするためのルールを保持するテーブル
+resource "aws_route_table" "private" {
+  # カウントを指定
+  # * ルートテーブルを複数作成する場合、カウントを指定して複数のルートテーブルを作成
+  count  = length(var.private_subnet_cidrs)
+  # VPCを指定
+  # * ルートテーブルが関連付けられるVPCを指定
+  vpc_id = var.vpc_id
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-private-${count.index + 1}"
     Environment = var.environment
   }
 }
@@ -126,9 +104,12 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# アベイラビリティゾーンを取得
-data "aws_availability_zones" "available" {
-  # カスタムフィルタを指定
-  # * カスタムフィルタを使用してアベイラビリティゾーンをフィルタリング
-  state = "available" # 利用可能なアベイラビリティゾーン
+
+
+
+# プライベートサブネットにルートテーブルを関連付け
+resource "aws_route_table_association" "private" {
+  count          = length(var.private_subnet_cidrs)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
 }

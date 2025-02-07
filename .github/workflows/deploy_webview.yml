@@ -1,0 +1,31 @@
+# Next.jsアプリのECSデプロイを行うGitHub Actions Workflow
+name: Deploy Webview
+
+on:
+  workflow_run:
+    workflows: ["Deploy AWS Resources"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: build-and-push  # Dockerイメージのビルド＆プッシュ完了後に実行
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+          aws-region: us-east-1
+
+      - name: Register New ECS Task Definition
+        run: |
+          aws ecs update-service \
+            --cluster webview-cluster \
+            --service webview \
+            --force-new-deployment
