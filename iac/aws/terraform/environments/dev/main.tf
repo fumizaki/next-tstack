@@ -37,6 +37,19 @@ module "subnet" {
   igw_id               = module.igw.igw_id
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
+  availability_zones   = var.availability_zones
+}
+
+module "vpc_endpoint" {
+  source = "../../modules/vpc_endpoint"
+
+  project_name          = var.project_name
+  environment           = var.environment
+  aws_region            = var.aws_region
+  vpc_id                = module.vpc.vpc_id
+  private_subnet_cidrs  = var.private_subnet_cidrs
+  private_subnet_ids    = module.subnet.private_subnet_ids
+  private_route_table_ids = module.subnet.private_route_table_ids
 }
 
 module "alb" {

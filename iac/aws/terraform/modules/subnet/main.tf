@@ -101,7 +101,7 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   # ルートテーブルIDを指定
   # * 関連付けるルートテーブルのIDを指定
-  route_table_id = aws_route_table.public.id
+  route_table_id = aws_route_table.public[count.index].id
 }
 
 

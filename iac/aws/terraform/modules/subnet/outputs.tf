@@ -8,7 +8,7 @@ output "private_subnet_ids" {
   value       = aws_subnet.private[*].id
 }
 
-output "availability_zones" {
-  description = "List of available Availability Zones"
-  value       = data.aws_availability_zones.available.names
+output "private_route_table_ids" {
+  description = "IDs of the private route tables"
+  value       = aws_route_table.private[*].id
 }

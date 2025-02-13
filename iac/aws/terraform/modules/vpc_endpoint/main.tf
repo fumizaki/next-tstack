@@ -1,7 +1,7 @@
 # VPCエンドポイントのセキュリティグループ
 resource "aws_security_group" "vpc_endpoint" {
   name        = "${var.project_name}-${var.environment}-vpce-sg"
-  description = "VPCエンドポイント用のセキュリティグループ"
+  description = "Security group for VPC Endpoint"
   vpc_id      = var.vpc_id
 
   # ECSタスクからVPCエンドポイントへアクセス許可
@@ -32,6 +32,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnet_ids
+  # Interface タイプの VPC エンドポイントにはセキュリティグループを指定する必要がある
   security_group_ids = [aws_security_group.vpc_endpoint.id]
 
   tags = {
@@ -47,6 +48,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnet_ids
+  # Interface タイプの VPC エンドポイントにはセキュリティグループを指定する必要がある
   security_group_ids = [aws_security_group.vpc_endpoint.id]
 
   tags = {
@@ -55,3 +57,16 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   }
 }
 
+# S3 用 VPCエンドポイント
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  # Gateway タイプの VPC エンドポイントにはルートテーブルを指定する必要がある
+  route_table_ids   = var.private_route_table_ids
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-s3-vpce"
+    Environment = var.environment
+  }
+}
