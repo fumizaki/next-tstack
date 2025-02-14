@@ -1,3 +1,4 @@
+# プロバイダーの設定
 terraform {
   required_providers {
     aws = {
@@ -5,115 +6,506 @@ terraform {
       version = "~> 5.0"
     }
   }
+  required_version = ">= 1.0.0"
 }
 
 provider "aws" {
-  region = var.aws_region
+  region = "ap-northeast-1"
 }
 
-module "vpc" {
-  source = "../../modules/vpc"
+# VPC設定
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
-  project_name         = var.project_name
-  environment          = var.environment
-  vpc_cidr             = var.vpc_cidr
+  tags = {
+    Name = "next-app-vpc"
+  }
 }
 
-module "igw" {
-  source = "../../modules/igw"
+# パブリックサブネット (ALB用)
+resource "aws_subnet" "public_1" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "ap-northeast-1a"
+  map_public_ip_on_launch = true
 
-  project_name         = var.project_name
-  environment          = var.environment
-  vpc_id             = module.vpc.vpc_id
+  tags = {
+    Name = "next-app-public-1"
+  }
 }
 
-module "subnet" {
-  source = "../../modules/subnet"
+resource "aws_subnet" "public_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "ap-northeast-1c"
+  map_public_ip_on_launch = true
 
-  project_name         = var.project_name
-  environment          = var.environment
-  aws_region           = var.aws_region
-  vpc_id               = module.vpc.vpc_id
-  igw_id               = module.igw.igw_id
-  public_subnet_cidrs  = var.public_subnet_cidrs
-  private_subnet_cidrs = var.private_subnet_cidrs
-  availability_zones   = var.availability_zones
+  tags = {
+    Name = "next-app-public-2"
+  }
 }
 
-module "vpc_endpoint" {
-  source = "../../modules/vpc_endpoint"
+# プライベートサブネット (ECS用)
+resource "aws_subnet" "private_1" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.11.0/24"
+  availability_zone = "ap-northeast-1a"
 
-  project_name          = var.project_name
-  environment           = var.environment
-  aws_region            = var.aws_region
-  vpc_id                = module.vpc.vpc_id
-  private_subnet_cidrs  = var.private_subnet_cidrs
-  private_subnet_ids    = module.subnet.private_subnet_ids
-  private_route_table_ids = module.subnet.private_route_table_ids
+  tags = {
+    Name = "next-app-private-1"
+  }
 }
 
-module "alb" {
-  source = "../../modules/alb"
+resource "aws_subnet" "private_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.12.0/24"
+  availability_zone = "ap-northeast-1c"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  vpc_id              = module.vpc.vpc_id
-  public_subnet_ids   = module.subnet.public_subnet_ids
-  container_port      = 3000
-  health_check_path   = "/"
+  tags = {
+    Name = "next-app-private-2"
+  }
 }
 
-module "ecr" {
-  source = "../../modules/ecr"
+# インターネットゲートウェイ
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
 
-  project_name = var.project_name
-  environment  = var.environment
+  tags = {
+    Name = "next-app-igw"
+  }
 }
 
-module "ecs_cluster" {
-  source = "../../modules/ecs_cluster"
+# Elastic IP for NAT Gateway
+resource "aws_eip" "nat_1" {
+  domain = "vpc"
 
-  project_name = var.project_name
-  environment  = var.environment
+  tags = {
+    Name = "next-app-nat-1"
+  }
 }
 
-module "task_definition" {
-  source = "../../modules/ecs_task_definition"
+resource "aws_eip" "nat_2" {
+  domain = "vpc"
 
-  project_name         = var.project_name
-  environment          = var.environment
-  ecr_repository_url   = module.ecr.repository_url
-  container_image_tag  = "latest"  # または特定のタグを指定
-  task_cpu            = var.ecs_task_cpu
-  task_memory         = var.ecs_task_memory
-  container_port      = 3000
-  aws_region          = var.aws_region
-  log_group_name      = module.ecs_cluster.log_group_name
+  tags = {
+    Name = "next-app-nat-2"
+  }
+}
 
-  environment_variables = [
+# NAT Gateway
+resource "aws_nat_gateway" "nat_1" {
+  allocation_id = aws_eip.nat_1.id
+  subnet_id     = aws_subnet.public_1.id
+
+  tags = {
+    Name = "next-app-nat-1"
+  }
+}
+
+resource "aws_nat_gateway" "nat_2" {
+  allocation_id = aws_eip.nat_2.id
+  subnet_id     = aws_subnet.public_2.id
+
+  tags = {
+    Name = "next-app-nat-2"
+  }
+}
+
+# パブリックルートテーブル
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name = "next-app-public-rt"
+  }
+}
+
+# プライベートルートテーブル
+resource "aws_route_table" "private_1" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_1.id
+  }
+
+  tags = {
+    Name = "next-app-private-rt-1"
+  }
+}
+
+resource "aws_route_table" "private_2" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_2.id
+  }
+
+  tags = {
+    Name = "next-app-private-rt-2"
+  }
+}
+
+resource "aws_route_table_association" "public_1" {
+  subnet_id      = aws_subnet.public_1.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_2" {
+  subnet_id      = aws_subnet.public_2.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "private_1" {
+  subnet_id      = aws_subnet.private_1.id
+  route_table_id = aws_route_table.private_1.id
+}
+
+resource "aws_route_table_association" "private_2" {
+  subnet_id      = aws_subnet.private_2.id
+  route_table_id = aws_route_table.private_2.id
+}
+
+# セキュリティグループ
+resource "aws_security_group" "alb" {
+  name        = "next-app-alb-sg"
+  description = "ALB security group"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "next-app-alb-sg"
+  }
+}
+
+resource "aws_security_group" "ecs" {
+  name        = "next-app-ecs-sg"
+  description = "ECS security group"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "next-app-ecs-sg"
+  }
+}
+
+# VPC Endpoints
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.ap-northeast-1.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  security_group_ids  = [aws_security_group.vpce.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.ap-northeast-1.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  security_group_ids  = [aws_security_group.vpce.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.ap-northeast-1.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  security_group_ids  = [aws_security_group.vpce.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.ap-northeast-1.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private_1.id, aws_route_table.private_2.id]
+}
+
+# VPCエンドポイント用のセキュリティグループ
+resource "aws_security_group" "vpce" {
+  name        = "next-app-vpce-sg"
+  description = "Security group for VPC endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs.id]
+  }
+
+  tags = {
+    Name = "next-app-vpce-sg"
+  }
+}
+
+
+
+# ECR リポジトリ
+resource "aws_ecr_repository" "app" {
+  name = "next-app"
+  force_delete = true
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
+# ECS クラスター
+resource "aws_ecs_cluster" "main" {
+  name = "next-app-cluster"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+}
+
+# ECS タスク実行ロール
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "next-app-task-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# ECSタスク実行ロールのポリシーアタッチメント
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# CloudWatch Logsへのアクセス権限
+resource "aws_iam_role_policy" "ecs_task_execution_cloudwatch" {
+  name = "next-app-task-execution-cloudwatch"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "${aws_cloudwatch_log_group.app.arn}:*"
+      }
+    ]
+  })
+}
+
+# ECRへのアクセス権限
+resource "aws_iam_role_policy" "ecs_task_execution_ecr" {
+  name = "next-app-task-execution-ecr"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# ECSタスクロール（コンテナ実行時のロール）
+resource "aws_iam_role" "ecs_task_role" {
+  name = "next-app-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# タスク定義（更新）
+resource "aws_ecs_task_definition" "app" {
+  family                   = "next-app"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn           = aws_iam_role.ecs_task_role.arn  # タスクロールを追加
+
+  container_definitions = jsonencode([
     {
-      name  = "NODE_ENV"
-      value = var.environment
+      name  = "next-app"
+      image = "${aws_ecr_repository.app.repository_url}:latest"
+      portMappings = [
+        {
+          containerPort = 3000
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/next-app"
+          "awslogs-region"        = "ap-northeast-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+      environment = [
+        {
+          name  = "PORT"
+          value = "3000"
+        }
+      ]
     }
-    # 必要に応じて環境変数を追加
-  ]
+  ])
 }
 
-module "ecs_service" {
-  source = "../../modules/ecs_service"
-
-  project_name            = var.project_name
-  environment             = var.environment
-  ecs_cluster_id          = module.ecs_cluster.cluster_id
-  ecs_cluster_name        = module.ecs_cluster.cluster_name
-  task_definition_arn     = module.task_definition.task_definition_arn
-  vpc_id                  = module.vpc.vpc_id
-  private_subnet_ids      = module.subnet.private_subnet_ids
-  target_group_arn        = module.alb.target_group_arn
-  alb_security_group_id   = module.alb.alb_security_group_id
-  container_port          = 3000
-  desired_count           = 2
-  min_capacity            = 1
-  max_capacity            = 4
+# CloudWatch Logs グループ
+resource "aws_cloudwatch_log_group" "app" {
+  name              = "/ecs/next-app"
+  retention_in_days = 30
 }
 
+
+# ALB
+resource "aws_lb" "main" {
+  name               = "next-app-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets           = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+
+  enable_deletion_protection = true
+
+  tags = {
+    Name = "next-app-alb"
+  }
+}
+
+resource "aws_lb_target_group" "app" {
+  name        = "next-app-tg"
+  port        = 3000
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    interval            = 30
+    matcher            = "200"
+    path               = "/"
+    timeout            = 5
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+# ECS サービス
+resource "aws_ecs_service" "app" {
+  name            = "next-app"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 2
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+    security_groups = [aws_security_group.ecs.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn
+    container_name   = "next-app"
+    container_port   = 3000
+  }
+
+  depends_on = [aws_lb_listener.http]
+}
+
+# 出力
+output "ecr_repository_url" {
+  value = aws_ecr_repository.app.repository_url
+}
+
+output "alb_dns_name" {
+  value = aws_lb.main.dns_name
+}

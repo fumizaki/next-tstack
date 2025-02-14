@@ -11,9 +11,18 @@ resource "aws_security_group" "ecs_tasks" {
   # * ECSタスクに対して許可するインバウンドトラフィックを制御する
   ingress {
     from_port       = 80 # HTTP: ALBからのトラフィックを許可
-    to_port         = var.container_port # コンテナポート
+    to_port         = 80 # HTTP: ALBからのトラフィックを許可
     protocol        = "tcp" # TCP
     security_groups = [var.alb_security_group_id] # ALBのセキュリティグループからのアクセスを許可
+  }
+
+  # 出力トラフィック
+  # * ECSタスクから許可するアウトバウンドトラフィックを制御する
+  egress {
+    from_port   = 443 # HTTPS
+    to_port     = 443 # HTTPS
+    protocol    = "tcp" # TCP
+    security_groups = [var.vpce_security_group_id] # VPCエンドポイントのセキュリティグループへのアクセスを許可
   }
 
   # 出力トラフィック

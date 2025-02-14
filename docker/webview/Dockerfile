@@ -1,4 +1,5 @@
-FROM node:22.7-alpine AS builder
+# ビルド時にプラットフォームを明示的に指定する
+FROM --platform=linux/amd64 node:22.7-alpine AS builder
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -18,28 +19,27 @@ COPY ./app/webview ./
 # Build the application
 RUN npm run build
 
-FROM node:22.7-alpine AS runner
+# ビルド時にプラットフォームを明示的に指定する
+FROM --platform=linux/amd64 node:22.7-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Install production dependencies only
-COPY --from=builder /app/package*.json ./
-RUN npm ci --only=production
-
-# Copy built application
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+# Copy necessary files for standalone mode
 COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 # Create a non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-RUN chown -R nextjs:nodejs /app
+RUN addgroup -g 1001 -S next-tstack
+RUN adduser -S webview -u 1001
+RUN chown -R webview:next-tstack /app
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Use node directly with server.js for standalone mode
+CMD ["node", "server.js"]

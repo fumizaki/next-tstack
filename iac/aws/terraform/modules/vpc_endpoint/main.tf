@@ -57,6 +57,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   }
 }
 
+
 # S3 用 VPCエンドポイント
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = var.vpc_id

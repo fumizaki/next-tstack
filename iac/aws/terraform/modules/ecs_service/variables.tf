@@ -43,6 +43,11 @@ variable "alb_security_group_id" {
   type        = string
 }
 
+variable "vpce_security_group_id" {
+  description = "Security group ID of the VPC endpoint"
+  type        = string
+}
+
 variable "container_port" {
   description = "Port exposed by the container"
   type        = number
