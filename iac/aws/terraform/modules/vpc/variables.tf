@@ -4,12 +4,12 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Deployment environment"
-  type        = string
+    description = "The environment name"
+    type        = string
 }
+
 
 variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
+    description = "The CIDR block for the VPC"
+    type        = string
 }
-

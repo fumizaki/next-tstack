@@ -7,3 +7,14 @@ variable "environment" {
     description = "The environment name"
     type        = string
 }
+
+variable "vpc_id" {
+    description = "The VPC ID"
+    type        = string
+}
+
+
+variable "webview_port" {
+    description = "The port for the webview"
+    type        = number
+}

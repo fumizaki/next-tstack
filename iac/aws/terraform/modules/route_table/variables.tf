@@ -8,20 +8,25 @@ variable "environment" {
     type        = string
 }
 
-variable "region" {
-    description = "The region"
-    type        = string
-}
-
 variable "vpc_id" {
     description = "The VPC ID"
     type        = string
 }
 
-
-variable "vpce_security_group_id" {
-    description = "The security group ID for the VPC Endpoint"
+variable "igw_id" {
+    description = "The Internet Gateway ID"
     type        = string
+  
+}
+
+variable "public_route_cidr" {
+    description = "The CIDR block for the public route"
+    type        = string
+}
+
+variable "public_subnet_ids" {
+    description = "The public subnet IDs"
+    type        = list(string)
 }
 
 variable "private_subnet_ids" {

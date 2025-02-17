@@ -4,11 +4,11 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Deployment environment"
-  type        = string
+    description = "The environment name"
+    type        = string
 }
 
 variable "vpc_id" {
-  description = "ID of the VPC"
-  type        = string
+    description = "The VPC ID"
+    type        = string
 }

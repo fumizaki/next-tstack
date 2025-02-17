@@ -4,23 +4,13 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Deployment environment"
-  type        = string
-}
-
-variable "aws_region" {
-  description = "AWS region where resources will be created"
-  type        = string
+    description = "The environment name"
+    type        = string
 }
 
 variable "vpc_id" {
-  description = "ID of the VPC"
-  type        = string
-}
-
-variable "igw_id" {
-  description = "ID of the Internet Gateway"
-  type        = string
+    description = "The VPC ID"
+    type        = string
 }
 
 variable "public_subnet_cidrs" {
@@ -34,6 +24,6 @@ variable "private_subnet_cidrs" {
 }
 
 variable "availability_zones" {
-  description = "Availability zones where subnets will be created"
+  description = "Availability zones"
   type        = list(string)
 }

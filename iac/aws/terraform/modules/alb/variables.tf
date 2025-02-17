@@ -4,28 +4,26 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Deployment environment"
-  type        = string
+    description = "The environment name"
+    type        = string
 }
 
 variable "vpc_id" {
-  description = "ID of the VPC"
-  type        = string
+    description = "The VPC ID"
+    type        = string
+}
+
+variable "alb_security_group_id" {
+    description = "The security group ID of the ALB"
+    type        = string
 }
 
 variable "public_subnet_ids" {
-  description = "List of public subnet IDs"
-  type        = list(string)
+    description = "The public subnet IDs"
+    type        = list(string)
 }
 
-variable "container_port" {
-  description = "Port exposed by the container"
-  type        = number
-  default     = 3000
-}
-
-variable "health_check_path" {
-  description = "Path for health checks"
-  type        = string
-  default     = "/"
+variable "webview_port" {
+    description = "The port for the webview"
+    type        = number
 }
