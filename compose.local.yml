@@ -4,14 +4,14 @@ services:
     container_name: webview
     build:
       context: .
-      dockerfile: ./docker/webview/Dockerfile
+      dockerfile: ./docker/webview/Dockerfile.local
     volumes:
       - ./app/webview/src/:/webview/src/
     ports:
       - "${WEBVIEW_PORT}:${WEBVIEW_PORT}"
+    environment:
+      - NEXT_PUBLIC_WEBVIEW_BASE_URL=${WEBVIEW_BASE_URL}
     restart: unless-stopped
-    env_file:
-      - ./app/webview/.env.local
     # ヘルスチェック
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]

@@ -28,7 +28,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Copy necessary files for standalone mode
-COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/next.config.* ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -37,7 +37,7 @@ COPY --from=builder /app/.next/static ./.next/static
 RUN addgroup -g 1001 -S next-tstack
 RUN adduser -S webview -u 1001
 RUN chown -R webview:next-tstack /app
-USER nextjs
+USER webview
 
 EXPOSE 3000
 

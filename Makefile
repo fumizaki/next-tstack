@@ -6,27 +6,16 @@ ENV ?= local
 # rootの.envファイル作成
 create_root_env:
 	@if [ ! -f ./.env.example ]; then \
+		echo "WEBVIEW_ENV=local" > ./.env.example; \
 		echo "WEBVIEW_PORT=3000" > ./.env.example; \
+		echo "WEBVIEW_BASE_URL=http://localhost:${WEBVIEW_PORT}" > ./.env.example; \
 	fi
 	@if [ ! -f ./.env ]; then \
 		cp -f ./.env.example ./.env; \
 	fi
 
-# webviewの.envファイル作成
-create_webview_env:
-	@if [ ! -f ./app/webview/.env.example ]; then \
-		echo "NODE_ENV=local" > ./app/webview/.env.example; \
-	fi
-	@if [ ! -f ./app/webview/.env.local ]; then \
-		cp -f ./app/webview/.env.example ./app/webview/.env.local; \
-	fi
-	@if [ ! -f ./app/webview/.env.test ]; then \
-		cp -f ./app/webview/.env.example ./app/webview/.env.test; \
-	fi
-
-
 # 初期セットアップコマンド
-init: create_root_env create_webview_env
+init: create_root_env
 
 # Dockerコンテナ起動
 docker-up:
