@@ -116,7 +116,7 @@ resource "aws_ecs_task_definition" "webview" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/ecs/${var.project_name}-${var.environment}"
-          "awslogs-region"        = var.region
+          "awslogs-region"        = "${var.region}"
           "awslogs-stream-prefix" = "ecs"
         }
       }

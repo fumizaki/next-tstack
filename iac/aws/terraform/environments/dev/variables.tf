@@ -40,38 +40,8 @@ variable "availability_zones" {
   default     = ["ap-northeast-1a", "ap-northeast-1c"]
 }
 
-variable "ecs_task_cpu" {
-  description = "CPU units for ECS task"
-  type        = number
-  default     = 256
-}
-
-variable "ecs_task_memory" {
-  description = "Memory for ECS task (in MiB)"
-  type        = number
-  default     = 512
-}
-
-variable "webview_ecs_cluster" {
-    description = "The ECS cluster name for the webview"
-    type        = string
-    default     = "webview-cluster"
-}
-
-variable "webview_ecs_service" {
-    description = "The ECS service name for the webview"
-    type        = string
-    default     = "webview-service"
-}
-
-variable "webview_container_port" {
-    description = "The container port for the webview"
+variable "webview_port" {
+    description = "The port for the webview"
     type        = number
     default     = 3000
-}
-
-variable "webview_desired_count" {
-    description = "The desired count for the webview"
-    type        = number
-    default     = 2
 }

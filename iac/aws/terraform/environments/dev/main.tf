@@ -1,4 +1,3 @@
-# プロバイダーの設定
 terraform {
   required_providers {
     aws = {
@@ -10,7 +9,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "ap-northeast-1"
+  region = var.aws_region
 }
 
 
@@ -60,7 +59,7 @@ module "security_group" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id = module.vpc.vpc_id
-  webview_port = 3000
+  webview_port = var.webview_port
   
 }
 
@@ -72,7 +71,7 @@ module "alb" {
   vpc_id = module.vpc.vpc_id
   alb_security_group_id = module.security_group.alb_security_group_id
   public_subnet_ids = module.subnet.public_subnet_ids
-  webview_port = 3000
+  webview_port = var.webview_port
 }
 
 module "vpc_endpoint" {
@@ -111,7 +110,7 @@ module "ecs" {
   ecr_repository_url = module.ecr.ecr_repository_url
   private_subnet_ids = module.subnet.private_subnet_ids
   ecs_security_group_id = module.security_group.ecs_security_group_id
-  webview_port = 3000
+  webview_port = var.webview_port
   alb_target_group_arn = module.alb.target_group_arn
   alb_listener_arns = [module.alb.http_listener_arn]
 }
