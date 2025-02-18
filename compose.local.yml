@@ -18,3 +18,25 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  rdb:
+    container_name: rdb
+    build:
+      context: .
+      dockerfile: ./docker/rdb/Dockerfile.local
+    volumes:
+      - type: bind
+        source: ./app/rdb/postgresql/local
+        target: /var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${RDB_NAME}
+      POSTGRES_USER: ${RDB_USER}
+      POSTGRES_PASSWORD: ${RDB_PASSWORD}
+    ports:
+      - "127.0.0.1:${RDB_PORT}:${RDB_PORT}"
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${RDB_USER} -d ${RDB_NAME}"]
+      interval: 1s
+      timeout: 3s
+      retries: 30

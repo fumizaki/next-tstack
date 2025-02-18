@@ -9,6 +9,11 @@ create_root_env:
 		echo "WEBVIEW_ENV=local" > ./.env.example; \
 		echo "WEBVIEW_PORT=3000" >> ./.env.example; \
 		echo "WEBVIEW_BASE_URL=http://localhost:\$${WEBVIEW_PORT}" >> ./.env.example; \
+		echo "RDB_HOST=rdb" >> ./.env.example; \
+		echo "RDB_NAME=psql" >> ./.env.example; \
+		echo "RDB_USER=psql" >> ./.env.example; \
+		echo "RDB_PASSWORD=psql" >> ./.env.example; \
+		echo "RDB_PORT=5432" >> ./.env.example; \
 	fi
 	@if [ ! -f ./.env ]; then \
 		cp -f ./.env.example ./.env; \
@@ -21,6 +26,11 @@ create_webview_env:
 		echo "WEBVIEW_ENV=local" > ./app/webview/.env.example; \
 		echo "WEBVIEW_PORT=3000" >> ./app/webview/.env.example; \
 		echo "NEXT_PUBLIC_WEBVIEW_BASE_URL=http://localhost:\$${WEBVIEW_PORT}" >> ./app/webview/.env.example; \
+		echo "RDB_HOST=rdb" >> ./app/webview/.env.example; \
+		echo "RDB_NAME=psql" >> ./app/webview/.env.example; \
+		echo "RDB_USER=psql" >> ./app/webview/.env.example; \
+		echo "RDB_PASSWORD=psql" >> ./app/webview/.env.example; \
+		echo "RDB_PORT=5432" >> ./app/webview/.env.example; \
 	fi
 	@if [ ! -f ./app/webview/.env.local ]; then \
 		cp -f ./app/webview/.env.example ./app/webview/.env.local; \
