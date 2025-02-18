@@ -38,7 +38,7 @@ docker tag next-tstack-dev:latest <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaw
 docker push <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/next-tstack-dev:latest
 
 # Update the ECS service
-aws ecs update-service --cluster next-tstack-dev-cluster --service next-tstack-dev-service --force-new-deployment
+aws ecs update-service --cluster next-tstack-dev-webview-cluster --service next-tstack-dev-webview --force-new-deployment
 ```
 
 

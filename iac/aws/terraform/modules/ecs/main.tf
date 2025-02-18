@@ -92,7 +92,7 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 }
 
-# タスク定義（更新）
+# タスク定義
 resource "aws_ecs_task_definition" "webview" {
   family                   = "${var.project_name}-${var.environment}-webview"
   network_mode             = "awsvpc"
@@ -104,11 +104,11 @@ resource "aws_ecs_task_definition" "webview" {
 
   container_definitions = jsonencode([
     {
-      name  = "webview"
+      name  = "${var.project_name}-${var.environment}-webview"
       image = "${var.ecr_repository_url}:latest"
       portMappings = [
         {
-          containerPort = 3000
+          containerPort = "${var.webview_port}"
           protocol      = "tcp"
         }
       ]
@@ -123,7 +123,7 @@ resource "aws_ecs_task_definition" "webview" {
       environment = [
         {
           name  = "PORT"
-          value = "${var.webview_port}"
+          value = "${tostring(var.webview_port)}"
         }
       ]
     }

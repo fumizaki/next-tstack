@@ -9,8 +9,8 @@ services:
       - ./app/webview/src/:/webview/src/
     ports:
       - "${WEBVIEW_PORT}:${WEBVIEW_PORT}"
-    environment:
-      - NEXT_PUBLIC_WEBVIEW_BASE_URL=${WEBVIEW_BASE_URL}
+    env_file:
+      - ./app/webview/.env.local
     restart: unless-stopped
     # ヘルスチェック
     healthcheck:

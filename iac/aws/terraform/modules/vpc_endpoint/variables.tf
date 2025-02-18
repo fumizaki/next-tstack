@@ -28,3 +28,9 @@ variable "private_subnet_ids" {
     description = "The private subnet IDs"
     type        = list(string)
 }
+
+variable "private_route_table_ids" {
+    description = "The private route table IDs"
+    type        = list(string)
+  
+}

@@ -83,6 +83,7 @@ module "vpc_endpoint" {
   vpc_id = module.vpc.vpc_id
   vpce_security_group_id = module.security_group.vpce_security_group_id
   private_subnet_ids = module.subnet.private_subnet_ids
+  private_route_table_ids = module.route_table.private_route_table_ids
 }
 
 module "cloudwatch_log_group" {
