@@ -16,3 +16,12 @@ export const AccountTable = pgTable('account', {
     ...table,
     email: text('email').notNull()
 });
+
+export const AccountSecretTable = pgTable('account_secret', {
+    ...table,
+    accountId: uuid('account_id')
+        .references(() => AccountTable.id, { onDelete: 'cascade'})
+        .notNull(),
+    password: text('password').notNull()
+});
+

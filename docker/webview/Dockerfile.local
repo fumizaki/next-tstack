@@ -6,4 +6,8 @@ WORKDIR /webview
 COPY ./app/webview/package.json .
 RUN npm install
 COPY ./app/webview .
-CMD ["npm", "run", "dev"]
+
+COPY ./docker/webview/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -31,6 +31,7 @@ create_webview_env:
 		echo "RDB_USER=psql" >> ./app/webview/.env.example; \
 		echo "RDB_PASSWORD=psql" >> ./app/webview/.env.example; \
 		echo "RDB_PORT=5432" >> ./app/webview/.env.example; \
+		echo "PSQL_URL=postgresql://\$${RDB_USER}:\$${RDB_PASSWORD}@\$${RDB_HOST}:\$${RDB_PORT}/\$${RDB_NAME}" >> ./.env.example; \
 	fi
 	@if [ ! -f ./app/webview/.env.local ]; then \
 		cp -f ./app/webview/.env.example ./app/webview/.env.local; \
@@ -40,8 +41,17 @@ create_webview_env:
 	fi
 	@echo "create_webview_env done"
 
+# rdbのディレクトリ作成
+create_rdb_dir:
+	@if [ ! -d ./app/rdb/postgresql/local ]; then \
+		mkdir -p ./app/rdb/postgresql/local; \
+	fi
+	@if [ ! -d ./app/rdb/postgresql/test ]; then \
+		mkdir -p ./app/rdb/postgresql/test; \
+	fi
+
 # 初期セットアップコマンド
-init: create_root_env create_webview_env
+init: create_root_env create_webview_env create_rdb_dir
 	@echo "init done"
 
 # Dockerコンテナ起動
