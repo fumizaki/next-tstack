@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: ./docker/webview/Dockerfile.local
     volumes:
-      - ./app/webview/src/:/webview/src/
+      - ./packages/webview/src/:/webview/src/
     ports:
       - "${WEBVIEW_PORT}:${WEBVIEW_PORT}"
     env_file:
-      - ./app/webview/.env.local
+      - ./packages/webview/.env.local
     restart: unless-stopped
     # ヘルスチェック
     healthcheck:
@@ -27,7 +27,7 @@ services:
       dockerfile: ./docker/rdb/Dockerfile.local
     volumes:
       - type: bind
-        source: ./app/rdb/postgresql/local
+        source: ./packages/rdb/postgresql/local
         target: /var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${RDB_NAME}

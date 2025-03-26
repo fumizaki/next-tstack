@@ -1,26 +1,26 @@
-# AWSへのTerraformリソース展開を行うGitHub Actions Workflow
-name: Deploy AWS Resources
+# # AWSへのTerraformリソース展開を行うGitHub Actions Workflow
+# name: Deploy AWS Resources
 
-on:
-  workflow_run:
-    workflows: ["Build and Push Webview Image"]
-    types:
-      - completed
+# on:
+#   workflow_run:
+#     workflows: ["Build and Push Webview Image"]
+#     types:
+#       - completed
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
       
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
-          aws-region: us-east-1
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v2
+#         with:
+#           role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+#           aws-region: us-east-1
       
-      - name: Deploy Infrastructure with Terraform
-        run: |
-          terraform init
-          terraform apply -auto-approve
+#       - name: Deploy Infrastructure with Terraform
+#         run: |
+#           terraform init
+#           terraform apply -auto-approve

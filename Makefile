@@ -22,32 +22,32 @@ create_root_env:
 
 # webviewの.envファイル作成
 create_webview_env:
-	@if [ ! -f ./app/webview/.env.example ]; then \
-		echo "WEBVIEW_ENV=local" > ./app/webview/.env.example; \
-		echo "WEBVIEW_PORT=3000" >> ./app/webview/.env.example; \
-		echo "NEXT_PUBLIC_WEBVIEW_BASE_URL=http://localhost:\$${WEBVIEW_PORT}" >> ./app/webview/.env.example; \
-		echo "RDB_HOST=rdb" >> ./app/webview/.env.example; \
-		echo "RDB_NAME=psql" >> ./app/webview/.env.example; \
-		echo "RDB_USER=psql" >> ./app/webview/.env.example; \
-		echo "RDB_PASSWORD=psql" >> ./app/webview/.env.example; \
-		echo "RDB_PORT=5432" >> ./app/webview/.env.example; \
+	@if [ ! -f ./packages/webview/.env.example ]; then \
+		echo "WEBVIEW_ENV=local" > ./packages/webview/.env.example; \
+		echo "WEBVIEW_PORT=3000" >> ./packages/webview/.env.example; \
+		echo "NEXT_PUBLIC_WEBVIEW_BASE_URL=http://localhost:\$${WEBVIEW_PORT}" >> ./packages/webview/.env.example; \
+		echo "RDB_HOST=rdb" >> ./packages/webview/.env.example; \
+		echo "RDB_NAME=psql" >> ./packages/webview/.env.example; \
+		echo "RDB_USER=psql" >> ./packages/webview/.env.example; \
+		echo "RDB_PASSWORD=psql" >> ./packages/webview/.env.example; \
+		echo "RDB_PORT=5432" >> ./packages/webview/.env.example; \
 		echo "PSQL_URL=postgresql://\$${RDB_USER}:\$${RDB_PASSWORD}@\$${RDB_HOST}:\$${RDB_PORT}/\$${RDB_NAME}" >> ./.env.example; \
 	fi
-	@if [ ! -f ./app/webview/.env.local ]; then \
-		cp -f ./app/webview/.env.example ./app/webview/.env.local; \
+	@if [ ! -f ./packages/webview/.env.local ]; then \
+		cp -f ./packages/webview/.env.example ./packages/webview/.env.local; \
 	fi
-	@if [ ! -f ./app/webview/.env.test ]; then \
-		cp -f ./app/webview/.env.example ./app/webview/.env.test; \
+	@if [ ! -f ./packages/webview/.env.test ]; then \
+		cp -f ./packages/webview/.env.example ./packages/webview/.env.test; \
 	fi
 	@echo "create_webview_env done"
 
 # rdbのディレクトリ作成
 create_rdb_dir:
-	@if [ ! -d ./app/rdb/postgresql/local ]; then \
-		mkdir -p ./app/rdb/postgresql/local; \
+	@if [ ! -d ./packages/rdb/postgresql/local ]; then \
+		mkdir -p ./packages/rdb/postgresql/local; \
 	fi
-	@if [ ! -d ./app/rdb/postgresql/test ]; then \
-		mkdir -p ./app/rdb/postgresql/test; \
+	@if [ ! -d ./packages/rdb/postgresql/test ]; then \
+		mkdir -p ./packages/rdb/postgresql/test; \
 	fi
 
 # 初期セットアップコマンド

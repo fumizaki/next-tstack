@@ -8,13 +8,13 @@ ENV NODE_ENV=production
 RUN apk add --no-cache libc6-compat python3 make g++
 
 # Copy package files
-COPY ./app/webview/package*.json ./
+COPY ./packages/webview/package*.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy source files
-COPY ./app/webview ./
+COPY ./packages/webview ./
 
 # Build the application
 RUN npm run build
