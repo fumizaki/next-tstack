@@ -7,16 +7,16 @@ resource "aws_route_table" "public" {
     }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-public-rt"
+    Name = "${var.environment}-${var.project_name}-public-rt"
   }
 }
 
-resource "aws_route_table" "private" {
-  count = length(var.private_subnet_ids)
+resource "aws_route_table" "webview" {
+  count = length(var.webview_subnet_ids)
   vpc_id = var.vpc_id
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-private-rt-${count.index}"
+    Name = "${var.environment}-${var.project_name}-webview-rt-${count.index}"
   }
 }
 
@@ -25,7 +25,7 @@ resource "aws_route_table" "rdb" {
   vpc_id = var.vpc_id
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-rdb-rt-${count.index}"
+    Name = "${var.environment}-${var.project_name}-rdb-rt-${count.index}"
   }
 }
 
@@ -35,10 +35,10 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table_association" "private" {
-  count         = length(var.private_subnet_ids)
-  subnet_id = var.private_subnet_ids[count.index]
-  route_table_id = aws_route_table.private[count.index].id
+resource "aws_route_table_association" "webview" {
+  count         = length(var.webview_subnet_ids)
+  subnet_id = var.webview_subnet_ids[count.index]
+  route_table_id = aws_route_table.webview[count.index].id
 }
 
 resource "aws_route_table_association" "rdb" {

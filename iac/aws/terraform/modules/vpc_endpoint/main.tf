@@ -59,3 +59,11 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = var.private_route_table_ids
 }
 
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${var.region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [var.vpce_security_group_id]
+  private_dns_enabled = true
+}

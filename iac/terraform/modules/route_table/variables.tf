@@ -1,11 +1,11 @@
 variable "project_name" {
-  description = "Name of the project"
+  description = "Project name"
   type        = string
 }
 
 variable "environment" {
-    description = "The environment name"
-    type        = string
+  description = "Environment name"
+  type        = string
 }
 
 variable "vpc_id" {
@@ -29,8 +29,8 @@ variable "public_subnet_ids" {
     type        = list(string)
 }
 
-variable "private_subnet_ids" {
-    description = "The private subnet IDs"
+variable "webview_subnet_ids" {
+    description = "The Webview subnet IDs"
     type        = list(string)
 }
 

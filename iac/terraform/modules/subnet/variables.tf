@@ -1,24 +1,24 @@
 variable "project_name" {
-  description = "Name of the project"
+  description = "Project name"
   type        = string
 }
 
 variable "environment" {
-    description = "The environment name"
-    type        = string
+  description = "Environment name"
+  type        = string
 }
 
 variable "vpc_id" {
-    description = "The VPC ID"
-    type        = string
+  description = "ID of the VPC where subnets will be created"
+  type        = string
 }
 
 variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets"
+  description = "List of CIDR blocks for the subnets"
   type        = list(string)
 }
 
-variable "private_subnet_cidrs" {
+variable "webview_subnet_cidrs" {
   description = "CIDR blocks for private subnets"
   type        = list(string)
 }
@@ -29,6 +29,7 @@ variable "rdb_subnet_cidrs" {
 }
 
 variable "availability_zones" {
-  description = "Availability zones"
+  description = "List of availability zones for the subnets"
   type        = list(string)
 }
+

@@ -1,18 +1,17 @@
 variable "project_name" {
-  description = "Name of the project"
+  description = "Project name"
   type        = string
 }
 
 variable "environment" {
-    description = "The environment name"
-    type        = string
+  description = "Environment name"
+  type        = string
 }
 
 variable "vpc_id" {
     description = "The VPC ID"
     type        = string
 }
-
 
 variable "webview_port" {
     description = "The port for the webview"

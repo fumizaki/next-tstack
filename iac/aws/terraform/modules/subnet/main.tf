@@ -23,3 +23,15 @@ resource "aws_subnet" "private" {
   }
   
 }
+
+# データベースサブネット
+resource "aws_subnet" "rdb" {
+  count = length(var.rdb_subnet_cidrs)
+  vpc_id                  = var.vpc_id
+  cidr_block              = var.rdb_subnet_cidrs[count.index]
+  availability_zone       = var.availability_zones[count.index]
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-rdb-${count.index}"
+  }
+}

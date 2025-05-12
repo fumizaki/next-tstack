@@ -23,11 +23,11 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-sg-alb"
+    Name = "${var.environment}-${var.project_name}-sg-alb"
   }
 }
 
-resource "aws_security_group" "ecs" {
+resource "aws_security_group" "webview" {
   vpc_id      = var.vpc_id
 
   ingress {
@@ -45,11 +45,11 @@ resource "aws_security_group" "ecs" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-sg-ecs"
+    Name = "${var.environment}-${var.project_name}-sg-webview"
   }
 }
 
-resource "aws_security_group" "rds" {
+resource "aws_security_group" "rdb" {
   vpc_id      = var.vpc_id
 
   ingress {
@@ -67,7 +67,7 @@ resource "aws_security_group" "rds" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-sg-rds"
+    Name = "${var.environment}-${var.project_name}-sg-rdb"
   }
 }
 
@@ -78,7 +78,7 @@ resource "aws_security_group" "vpce" {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs.id]
+    security_groups = [aws_security_group.webview.id]
   }
 
   egress {
@@ -89,6 +89,6 @@ resource "aws_security_group" "vpce" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-sg-vpce"
+    Name = "${var.environment}-${var.project_name}-sg-vpce"
   }
 }
